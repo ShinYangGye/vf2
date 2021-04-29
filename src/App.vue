@@ -1,60 +1,191 @@
 <template>
-  <v-app>
-    <v-app-bar
-      app
-      color="primary"
-      dark
-    >
-      <div class="d-flex align-center">
-        <v-img
-          alt="Vuetify Logo"
-          class="shrink mr-2"
-          contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
-          transition="scale-transition"
-          width="40"
-        />
+<!-- App.vue -->
 
-        <v-img
-          alt="Vuetify Name"
-          class="shrink mt-1 hidden-sm-and-down"
-          contain
-          min-width="100"
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
-          width="100"
-        />
-      </div>
+<v-app>
+  <v-navigation-drawer app v-model="drawer">
+    <LeftMenu :leftMenu="site.leftMenu" />
+  </v-navigation-drawer>
 
+  <v-app-bar app color="primary" dark>
+      <v-app-bar-nav-icon @click = "drawer = !drawer"></v-app-bar-nav-icon>
+      <v-toolbar-title>{{ site.title }}</v-toolbar-title>
+      <v-btn icon @click="openDialogTitle"><v-icon small>mdi-pencil</v-icon></v-btn>
       <v-spacer></v-spacer>
-
-      <v-btn
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-        text
-      >
-        <span class="mr-2">Latest Release</span>
-        <v-icon>mdi-open-in-new</v-icon>
+      <v-btn icon>
+        <v-icon>mdi-magnify</v-icon>
       </v-btn>
-    </v-app-bar>
+  </v-app-bar>
 
-    <v-main>
-      <HelloWorld/>
-    </v-main>
-  </v-app>
+<v-dialog
+      v-model="dialogTitle"
+      width="500"
+    >
+  <v-card>
+    <v-card-title>
+      제목수정
+      <v-spacer></v-spacer>
+      <v-btn icon @click="saveTitle"><v-icon>mdi-content-save</v-icon></v-btn>
+      <v-btn icon @click="dialogTitle = false"><v-icon>mdi-close</v-icon></v-btn>
+    </v-card-title>
+    <v-card-text>
+      <v-text-field v-model="site.title" outlined label="제목" @keypress.enter="saveTitle" hide-details></v-text-field>
+    </v-card-text>
+  </v-card>
+</v-dialog>
+
+  <v-main>
+
+    <v-container fluid>
+
+      <router-view></router-view>
+
+    </v-container>
+  </v-main>
+
+  <v-footer app color="primary" dark>
+    {{ site.footer }}
+    <v-btn icon @click="dialogFooter = true"><v-icon small>mdi-pencil</v-icon></v-btn>
+    <v-spacer></v-spacer>
+    <div>Copy Right</div>
+  </v-footer>
+
+<v-dialog
+      v-model="dialogFooter"
+      width="500"
+    >
+  <v-card>
+    <v-card-title>
+      Footer수정
+      <v-spacer></v-spacer>
+      <v-btn icon @click="saveFooter"><v-icon>mdi-content-save</v-icon></v-btn>
+      <v-btn icon @click="dialogFooter = false"><v-icon>mdi-close</v-icon></v-btn>
+    </v-card-title>
+    <v-card-text>
+      <v-text-field v-model="site.footer" outlined label="Footer" @keypress.enter="saveFooter" hide-details></v-text-field>
+    </v-card-text>
+  </v-card>
+</v-dialog>
+
+</v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld'
+import LeftMenu from './components/site/leftMenu';
 
 export default {
   name: 'App',
-
   components: {
-    HelloWorld
+    LeftMenu
   },
-
-  data: () => ({
-    //
-  })
-}
+  data () {
+    return {
+      dialogTitle: false,
+      dialogFooter: false,
+      drawer: false,
+      site: {
+        title: '',
+        footer: '',
+        leftMenu: {
+          items: [
+            {
+              action: 'mdi-ticket',
+              subItems: [{ title: 'List Item' }],
+              title: 'Attractions'
+            },
+            {
+              action: 'mdi-silverware-fork-knife',
+              active: true,
+              subItems: [
+                { title: 'Breakfast & brunch' },
+                { title: 'New American' },
+                { title: 'Sushi' },
+                { title: 'About', to: 'About' }
+              ],
+              title: 'Dining'
+            },
+            {
+              action: 'mdi-school',
+              subItems: [{ title: 'List Item' }],
+              title: 'Education'
+            },
+            {
+              action: 'mdi-run',
+              subItems: [{ title: 'List Item' }],
+              title: 'Family'
+            },
+            {
+              action: 'mdi-bottle-tonic-plus',
+              subItems: [{ title: 'List Item' }],
+              title: 'Health'
+            },
+            {
+              action: 'mdi-content-cut',
+              subItems: [{ title: 'List Item' }],
+              title: 'Office'
+            },
+            {
+              action: 'mdi-tag',
+              subItems: [{ title: 'List Item' }],
+              title: 'Promotions'
+            }
+          ]
+        }
+      }
+    };
+  },
+  created () {
+    this.subscribe();
+  },
+  mounted () {
+    console.log('======>firebase', this.$firebase);
+  },
+  methods: {
+    openDialogTitle () {
+      this.dialogTitle = true;
+    },
+    openDialogFooter () {
+      this.dialogFooter = true;
+    },
+    async saveTitle () {
+      try {
+        this.$firebase.database().ref().child('site').update({ title: this.site.titless });
+      } finally {
+        this.dialogTitle = false;
+      }
+    },
+    async saveFooter () {
+      try {
+        this.$firebase.database().ref().child('site').update({ footer: this.site.footer });
+      } catch (e) {
+        console.log(e.message);
+      } finally {
+        this.dialogFooter = false;
+      }
+    },
+    subscribe () {
+      this.$firebase.database().ref().child('site').on('value', (sn) => {
+        const v = sn.val();
+        if (!v) {
+          this.$firebase.database().ref().child('site').set(this.site);
+          return;
+        }
+        this.site = v;
+      }, (e) => {
+        console.log(e.message);
+      });
+    },
+    save () {
+      console.log('save...');
+      this.$firebase.database().ref().child('abcd').set({
+        title: '제목', text: '제목 타이틀'
+      });
+    },
+    read () {
+      this.$firebase.database().ref().child('abcd').once('value', (sn) => {
+        console.log(sn);
+        console.log(sn.val());
+      });
+    }
+  }
+};
 </script>
