@@ -2,8 +2,8 @@
 <!-- App.vue -->
 
 <v-app>
-  <v-navigation-drawer app v-model="drawer">
-    <LeftMenu :leftMenu="site.leftMenu" />
+  <v-navigation-drawer app v-model="drawer" :width=leftWidth>
+    <left-menu :leftMenu="site.leftMenu" @setEditMode="setEditMode" />
   </v-navigation-drawer>
 
   <v-app-bar app color="primary" dark>
@@ -11,9 +11,7 @@
       <v-toolbar-title>{{ site.title }}</v-toolbar-title>
       <v-btn icon @click="openDialogTitle"><v-icon small>mdi-pencil</v-icon></v-btn>
       <v-spacer></v-spacer>
-      <v-btn icon>
-        <v-icon>mdi-magnify</v-icon>
-      </v-btn>
+      <sign />
   </v-app-bar>
 
 <v-dialog
@@ -70,66 +68,74 @@
 </template>
 
 <script>
-import LeftMenu from './components/site/leftMenu';
+import LeftMenu from './components/site/LeftMenu';
+import Sign from './components/site/Sign';
 
 export default {
   name: 'App',
   components: {
-    LeftMenu
+    LeftMenu, Sign
   },
   data () {
     return {
+      editMode: false,
+      leftWidth: 256,
       dialogTitle: false,
       dialogFooter: false,
-      drawer: false,
+      drawer: true,
       site: {
         title: '',
         footer: '',
         leftMenu: {
-          items: [
-            {
-              action: 'mdi-ticket',
-              subItems: [{ title: 'List Item' }],
-              title: 'Attractions'
-            },
-            {
-              action: 'mdi-silverware-fork-knife',
-              active: true,
-              subItems: [
-                { title: 'Breakfast & brunch' },
-                { title: 'New American' },
-                { title: 'Sushi' },
-                { title: 'About', to: 'About' }
-              ],
-              title: 'Dining'
-            },
-            {
-              action: 'mdi-school',
-              subItems: [{ title: 'List Item' }],
-              title: 'Education'
-            },
-            {
-              action: 'mdi-run',
-              subItems: [{ title: 'List Item' }],
-              title: 'Family'
-            },
-            {
-              action: 'mdi-bottle-tonic-plus',
-              subItems: [{ title: 'List Item' }],
-              title: 'Health'
-            },
-            {
-              action: 'mdi-content-cut',
-              subItems: [{ title: 'List Item' }],
-              title: 'Office'
-            },
-            {
-              action: 'mdi-tag',
-              subItems: [{ title: 'List Item' }],
-              title: 'Promotions'
-            }
-          ]
+          items: []
         }
+
+        // leftMenu: {
+        //   items: [
+        //     {
+        //       action: 'mdi-ticket',
+        //       subItems: [{ title: 'List Item' }],
+        //       title: 'Attractions'
+        //     },
+        //     {
+        //       action: 'mdi-silverware-fork-knife',
+        //       active: true,
+        //       subItems: [
+        //         { title: 'Breakfast & brunch' },
+        //         { title: 'New American' },
+        //         { title: 'Sushi' },
+        //         { title: 'About', to: 'About' }
+        //       ],
+        //       title: 'Dining'
+        //     },
+        //     {
+        //       action: 'mdi-school',
+        //       subItems: [{ title: 'List Item' }],
+        //       title: 'Education'
+        //     },
+        //     {
+        //       action: 'mdi-run',
+        //       subItems: [{ title: 'List Item' }],
+        //       title: 'Family'
+        //     },
+        //     {
+        //       action: 'mdi-bottle-tonic-plus',
+        //       subItems: [{ title: 'List Item' }],
+        //       title: 'Health'
+        //     },
+        //     {
+        //       action: 'mdi-content-cut',
+        //       subItems: [{ title: 'List Item' }],
+        //       title: 'Office'
+        //     },
+        //     {
+        //       action: 'mdi-tag',
+        //       subItems: [{ title: 'List Item' }],
+        //       title: 'Promotions'
+        //     }
+        //   ]
+        // }
+
       }
     };
   },
@@ -137,9 +143,17 @@ export default {
     this.subscribe();
   },
   mounted () {
-    console.log('======>firebase', this.$firebase);
+    console.log('App.vue > firebase', this.$firebase);
   },
   methods: {
+    setEditMode () {
+      this.editMode = !this.editMode;
+      if (this.editMode) {
+        this.leftWidth = 400;
+      } else {
+        this.leftWidth = 256;
+      }
+    },
     openDialogTitle () {
       this.dialogTitle = true;
     },
@@ -148,7 +162,7 @@ export default {
     },
     async saveTitle () {
       try {
-        this.$firebase.database().ref().child('site').update({ title: this.site.titless });
+        this.$firebase.database().ref().child('site').update({ title: this.site.title });
       } finally {
         this.dialogTitle = false;
       }
@@ -156,8 +170,6 @@ export default {
     async saveFooter () {
       try {
         this.$firebase.database().ref().child('site').update({ footer: this.site.footer });
-      } catch (e) {
-        console.log(e.message);
       } finally {
         this.dialogFooter = false;
       }

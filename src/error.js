@@ -2,5 +2,6 @@ import Vue from 'vue';
 
 Vue.config.errorHandler = e => {
   console.error(e.message);
-  console.log('error.js');
+  Vue.prototype.$toast.error(e.message);
+  console.log('error.js', e.message);
 };
