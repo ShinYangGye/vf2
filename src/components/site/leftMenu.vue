@@ -110,7 +110,10 @@
       <v-btn icon><v-icon>mdi-close</v-icon></v-btn>
     </v-card-title>
     <v-card-text>
-      <v-text-field outlined label="제목" v-model="menuTitle"></v-text-field>
+      <v-text-field outlined label="제목" hide-details="" v-model="menuTitle"></v-text-field>
+    </v-card-text>
+    <v-card-text v-if="menuTo != null">
+      <v-text-field outlined label="경로명" placeholder="Home" hide-details="" v-model="menuTo"></v-text-field>
     </v-card-text>
     <v-card-actions>
       <v-btn color="primary" @click="setLeftMenu">저장</v-btn>
@@ -128,6 +131,7 @@ export default {
     return {
       editMode: false,
       menuTitle: null,
+      menuTo: null,
       dialog: false,
       dialogTitle: '',
       indexI: -1,
@@ -157,6 +161,16 @@ export default {
       this.indexI = i;
       this.indexJ = j;
 
+      if (j === 'main') {
+        this.menuTo = null;
+      } else {
+        if (j === -1) {
+          this.menuTo = '경로명 ex)Home';
+        } else {
+          this.menuTo = this.leftMenu.items[this.indexI].subItems[this.indexJ].to;
+        }
+      }
+
       if (this.indexI < 0 || this.indexJ < 0) {
         this.dialogTitle = '메뉴추가';
       } else {
@@ -173,13 +187,14 @@ export default {
     },
     setLeftMenu () {
       if (this.indexI === -1 && this.indexJ === 'main') {
-        this.leftMenu.items.push({ action: 'mdi-ticket', title: this.menuTitle, subItems: [{ title: 'Sub Menu' }] }); // 대메뉴 추가
+        this.leftMenu.items.push({ action: 'mdi-ticket', title: this.menuTitle, active: false, subItems: [{ title: 'Sub Menu', to: 'Tmp' }] }); // 대메뉴 추가
       } else if (this.indexI > -1 && this.indexJ === 'main') {
         this.leftMenu.items[this.indexI].title = this.menuTitle; // 대메뉴 수정
       } else if (this.indexI > -1 && this.indexJ === -1) {
-        this.leftMenu.items[this.indexI].subItems.push({ title: this.menuTitle }); // 소메뉴 추가
+        this.leftMenu.items[this.indexI].subItems.push({ title: this.menuTitle, to: 'Tmp' }); // 소메뉴 추가
       } else if (this.indexI > -1 && this.indexJ > -1) { // 소메뉴 수정
         this.leftMenu.items[this.indexI].subItems[this.indexJ].title = this.menuTitle;
+        this.leftMenu.items[this.indexI].subItems[this.indexJ].to = this.menuTo;
       }
 
       this.saveLeftMenu();
